@@ -2,7 +2,7 @@ langchain==0.3.25
 langchain_community==0.3.24
 langchain_core==0.3.64
 langchain_groq==0.3.2
-numpy==2.2.6
+numpy==2.0.2
 python-dotenv==1.1.0
-scikit_learn==1.7.0
+scikit_learn==1.6.1
 streamlit==1.45.1
