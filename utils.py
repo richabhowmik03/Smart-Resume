@@ -3,7 +3,7 @@ import getpass
 import json
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
-from langchain_community.document_loaders import WebBaseLoader, UnstructuredPDFLoader
+from langchain_community.document_loaders import WebBaseLoader, PyPDFLoader
 from langchain_core.prompts import PromptTemplate
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
@@ -79,7 +79,7 @@ IMPORTANT:
     return json_res
 
 def load_resume(pdf_path):
-    resume_loader = UnstructuredPDFLoader(pdf_path)
+    resume_loader = PyPDFLoader(pdf_path)
     resume_docs = resume_loader.load()
     return resume_docs
 
