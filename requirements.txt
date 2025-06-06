@@ -9,5 +9,4 @@ streamlit==1.45.1
 pdfminer==20191125
 chromadb==1.0.12
 sentence-transformers==4.1.0
-unstructured==0.17.2
 
