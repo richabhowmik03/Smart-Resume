@@ -134,102 +134,37 @@ def get_most_relevant_resume_chunks(job_chunks, resume_chunks, job_embeddings, r
     return most_relevant_resume_chunks
 
 
-
-# def get_resume_suggestions(llm, job_chunks, most_relevant_resume_chunks):
-#     prompt_resume_suggestions = PromptTemplate.from_template(
-#     """
-# You are a career assistant helping someone tailor their resume for a specific job.
-
-# Given the job description and parts of the resume most relevant to that job, suggest 3–5 specific improvements to their resume. Focus on making the resume better aligned with the role, especially in terms of responsibilities, keywords, and skills.
-
-# Do NOT include any generic tips or advice.
-# Do NOT include any markdown, headers, explanations, or commentary.
-# Do NOT start with phrases like "Based on the job description..."
-# Do NOT wrap the output in triple backticks.
-# Do NOT include any code blocks.
-# The suggestions should be specific about the keywords to be added or changed, the skills to highlight, and any responsibilities that should be emphasized or added.
-# The suggestions should align with the job description provided. If the job description is not relevant to the resume chunk, explicitly
-# state that the job description is not relevant to the resume chunk. 
-
-# If the resume chunk is not relevant, explicitly say so in one of the suggestions.
-
-# Your output must be a **valid JSON list of plain strings only**. Example:
-# [
-#   "Replace generic phrases like 'team player' with specific outcomes like 'collaborated with a team of 5 to improve processing time by 30%'",
-#   "Mention Python and SQL if used in projects, as they are listed in the job description"
-# ]
-
-# ### JOB DESCRIPTION:
-# {job_text}
-
-# ### MATCHED RESUME CHUNKS:
-# {resume_chunks}
-# """
-# )
-#     chain_resume_suggestions = prompt_resume_suggestions | llm
-#     resume_tips = chain_resume_suggestions.invoke({
-#         "job_text": "\n\n".join([chunk.page_content for chunk in job_chunks]),
-#         "resume_chunks": "\n\n".join([
-#             item["best_matching_resume_chunk"].page_content for item in most_relevant_resume_chunks
-#         ])
-#     })
-    
-#     print(f"Raw response from model: {resume_tips.content}")
-    
-#     # Sanitize the response to remove array brackets and extra quotes
-#     response = resume_tips.content.strip()
-#     response = response.lstrip('[').rstrip(']')  # Remove array brackets
-
-#     # Split based on double quotes, filter out empty strings
-#     suggestions_list = [suggestion.strip() for suggestion in response.split('"') if suggestion.strip()]
-
-#     return suggestions_list
 def get_resume_suggestions(llm, job_chunks, most_relevant_resume_chunks):
     prompt_resume_suggestions = PromptTemplate.from_template(
     """
 You are an expert resume coach. Your task is to help a candidate tailor their resume for a specific job.
-# Given the job description and parts of the resume most relevant to that job, suggest 5-8 specific improvements to their resume. Focus on making the resume better aligned with the role, especially in terms of responsibilities, keywords, and skills.
 
 You will be given:
 - The job description (as text)
-- Labeled chunks of the candidate's resume (each with [SECTION: ...] or [PROJECT: ...] or [EXPERIENCE: ...] labels).
+- Labeled chunks of the candidate's resume (each with [SECTION: ...], [PROJECT: ...], or [EXPERIENCE: ...] labels).
 
+**Instructions:**
+- Suggest only the most direct, concise, and actionable changes to the resume.
+- For each suggestion:
+    - **Be specific:** Point out the exact line/section to modify, or provide the new line to add.
+    - **Do NOT recommend adding a keyword or skill if it already appears anywhere in the resume, even if not in the ideal section.**
+    - **If rewording is needed, show exactly what to replace and what to change it to.**
+    - **If adding a new line, provide the full sentence as it should appear in the resume.**
+    - Do NOT invent or assume experience, skills, or numbers that are not in the actual content.
+    - Do NOT ask to add the same keyword to multiple sections.
+    - Do NOT clutter the suggestions: Each suggestion should be a single, clear instruction (one per bullet).
+    - Do NOT give generic tips or commentary—just the direct changes.
 
-**Rules:**
-- When making suggestions, reference each section exactly as labeled (e.g., [SECTION: S&P Global Experience]).
-- NEVER move or attribute achievements, tools, or skills from one section/project to another.
-- Base every suggestion only on the *actual content* in the provided resume chunks. Do not invent or assume any experience not present.
-- Do not use any specific phrases from the instruction examples. Instead, rephrase or rewrite based on the actual text in the resume.
-- If the job description requests a skill or tool not mentioned in the resume, only suggest adding it if it is reasonable based on existing experience (e.g., suggest adding SQL only if similar data work is present).
-- If you are unsure, do not make up or assume. Leave that skill/experience out.
-- Do NOT delete degrees or valid internships/projects if the underlying skills are relevant, even if the title does not match exactly. Instead, suggest rewording for relevance.
-- Use specific section names or quoted phrases from the resume whenever possible.
-- Prefer suggestions that clarify or quantify impact, but do not invent numbers.
 - If no relevant improvements are possible, return an empty list.
-- Only refer to information present in the resume chunks provided (you may summarize, combine, or rephrase, but do not invent experiences or skills).
-- If the job description mentions specific tools, methods, or results not in the resume, recommend only if they are plausibly related to the candidate’s actual experience.
-- Prioritize suggestions that demonstrate quantifiable achievements or real impact (numbers, percentages, or clear outcomes, if available).
-- You may recommend reorganizing or renaming sections, *but* do NOT recommend deleting valid education, internships, or projects if their skills/tools are relevant—even if the title doesn't exactly match the job.
-- Instead of removing, suggest ways to reframe or reword for maximum relevance. If an internship or project is relevant but not an exact title match, **highlight how to rewrite it** to make the fit obvious.
-- Do NOT suggest generic or template advice, such as “Add Python to your skills” if Python is already present.
-- Do NOT suggest removing or rewording a degree (even if it is not mentioned in the job description).
-- If the job description is inappropriate, not a professional job description, or is irrelevant to resumes (e.g., contains unrelated or unsafe content), reply with a single suggestion: "The job description appears invalid or unrelated to a professional context. Please provide a valid job description."
-- If the job description is not relevant to the resume chunk, explicitly say so in one of the suggestions.
-
-
-# Do NOT include any generic tips or advice.
-# Do NOT include any markdown, headers, explanations, or commentary.
-# Do NOT start with phrases like "Based on the job description..."
-# Do NOT wrap the output in triple backticks.
-# Do NOT include any code blocks.
-
+- If the job description is inappropriate or unrelated to professional work, return: ["The job description appears invalid or unrelated to a professional context. Please provide a valid job description."]
 
 **Return only a valid JSON list of plain strings.**
 
-**Example (for format only):**
+**Examples:**
 [
-  "Modify the '<section>' to emphasize <relevant skills or achievements>",
-  "Reword the '<project>' description to mention <technology> as used in the job description"
+  "In [SECTION: Professional Summary], replace 'analyzing data' with '**building predictive models using Python and SQL**'.",
+  "Add the following line to [TECHNICAL SKILLS]: '**AWS SageMaker, Model Validation**'.",
+  "In [PROJECT: S&P Global], change 'forecasting sales' to 'forecasting sales using time series modeling'."
 ]
 
 ### JOB DESCRIPTION:
@@ -239,7 +174,6 @@ You will be given:
 {resume_chunks}
 """
     )
-
     chain_resume_suggestions = prompt_resume_suggestions | llm
     resume_tips = chain_resume_suggestions.invoke({
         "job_text": "\n\n".join([chunk.page_content for chunk in job_chunks]),
@@ -247,10 +181,7 @@ You will be given:
             item["best_matching_resume_chunk"].page_content for item in most_relevant_resume_chunks
         ])
     })
-    
-    print(f"Raw response from model: {resume_tips.content}")
 
-    # Use regex to extract each suggestion inside quotes (don't strip quotes first!)
+    import re
     suggestions_list = re.findall(r'"(.*?)"', resume_tips.content)
-
     return suggestions_list

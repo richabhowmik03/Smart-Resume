@@ -80,6 +80,12 @@ job_input_type = st.radio("How do you want to provide the job description?", ["L
 
 job_description = ""
 if job_input_type == "Link":
+    st.warning(
+        "⚠️ **Disclaimer:** When using a job link, results may vary depending on the website's permissions and anti-scraping measures. "
+        "Some sites may block scraping, which could lead to incomplete or missing job descriptions. "
+        "For best results, consider copy-pasting the job description text."
+    )
+
     job_url = st.text_input("Paste the job posting URL:")
     if job_url:
         from langchain_community.document_loaders import WebBaseLoader
@@ -94,9 +100,9 @@ if pdf_file and job_description and st.button("🔍 Analyze Resume"):
         # Load and process resume
         with open("temp_resume.pdf", "wb") as f:
             f.write(pdf_file.read())
-        st.write("PDF saved!")
+        st.write("Checkpoint 1: Resume PDF saved!")
         resume_docs = load_resume("temp_resume.pdf")
-        st.write("PDF loaded into docs!")
+        st.write("Checkpoint 2: Resume PDF loaded into docs!")
         resume_text = resume_docs[0].page_content
 
         # Split both texts
