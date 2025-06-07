@@ -94,15 +94,21 @@ if pdf_file and job_description and st.button("🔍 Analyze Resume"):
         # Load and process resume
         with open("temp_resume.pdf", "wb") as f:
             f.write(pdf_file.read())
+        st.write("PDF saved!")
         resume_docs = load_resume("temp_resume.pdf")
+        st.write("PDF loaded into docs!")
         resume_text = resume_docs[0].page_content
 
         # Split both texts
         resume_chunks, job_chunks = split_texts(resume_text, job_description)
+        st.write("Checkpoint 3: Resume/job split")
 
         # Embed and create vectorstores
         embed_model = get_embedding_model()
+        st.write("Checkpoint 4: Embedding model loaded")
         resume_db, _ = create_vectorstores(resume_chunks, job_chunks, embed_model)
+        st.write("Checkpoint 5: Embeddings created")
+
 
         # Find most relevant resume chunks
         similarity_results = get_most_relevant_resume_chunks(
