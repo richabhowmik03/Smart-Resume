@@ -7,7 +7,8 @@ python-dotenv==1.1.0
 scikit_learn==1.6.1
 streamlit==1.45.1
 pdfminer==20191125
-chromadb==1.0.12
+faiss-cpu==1.8.0 
+# chromadb==1.0.12
 sentence-transformers==4.1.0
 protobuf==3.20.3
 pypdf==5.6.0

@@ -8,11 +8,14 @@ from langchain_core.prompts import PromptTemplate
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 from langchain_community.embeddings import HuggingFaceEmbeddings  # Updated import
-from langchain_community.vectorstores import Chroma  # Updated import
+# from langchain_community.vectorstores import Chroma  # Updated import
+from langchain_community.vectorstores import FAISS
 from langchain_core.output_parsers import JsonOutputParser
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import re
+import warnings
+warnings.filterwarnings("ignore")
 
 # Set up environment
 def load_env():
@@ -96,8 +99,8 @@ def get_embedding_model(model_name="all-MiniLM-L6-v2"):
     return HuggingFaceEmbeddings(model_name=model_name)
 
 def create_vectorstores(resume_chunks, job_chunks, embedding_model):
-    resume_db = Chroma.from_documents(resume_chunks, embedding_model, collection_name="resume_chunks")
-    job_db = Chroma.from_documents(job_chunks, embedding_model, collection_name="job_chunks")
+    resume_db = FAISS.from_documents(resume_chunks, embedding_model)
+    job_db = FAISS.from_documents(job_chunks, embedding_model)
     return resume_db, job_db
 
 def find_similar_chunks(resume_db, job_chunks, k=2):
